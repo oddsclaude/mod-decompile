@@ -260,7 +260,7 @@ if [[ ${#DEP_IDS[@]} -gt 0 ]]; then
 
     if [[ -n "$VER_ID" ]]; then
       echo "    $dep -> maven.modrinth:${dep}:${VER_ID}"
-      DEP_INJECT="${DEP_INJECT}    runtimeOnly \"maven.modrinth:${dep}:${VER_ID}\"\n"
+      DEP_INJECT="${DEP_INJECT}    compileOnly \"maven.modrinth:${dep}:${VER_ID}\"\n"
       NEED_MR_REPO=true
     else
       echo "    $dep -> not found on Modrinth (add manually)"
