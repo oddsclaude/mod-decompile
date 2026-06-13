@@ -170,14 +170,22 @@ dependencies {
 BUILD_EOF
 
   mkdir -p "$OUT_DIR/gradle/wrapper"
-  # gradle.properties with resolved values
+  # gradle.properties with all standard NeoForge MDK keys
   cat > "$OUT_DIR/gradle.properties" <<PROPS_EOF
 org.gradle.jvmargs=-Xmx3G
 org.gradle.daemon=false
 minecraft_version=${MC_VERSION}
+minecraft_version_range=[${MC_VERSION},)
 neo_version=${NF_VERSION}
+neo_version_range=[${NF_VERSION},)
+loader_version_range=[1,)
 mod_id=${MOD_ID}
+mod_name=${MOD_ID}
+mod_license=ARR
 mod_version=${MOD_VERSION}
+mod_description=${MOD_DESC:-Decompiled mod}
+mod_authors=Unknown
+pack_format_number=34
 PROPS_EOF
 
   cat > "$OUT_DIR/gradle/wrapper/gradle-wrapper.properties" <<'WRAPPER_EOF'
@@ -203,6 +211,8 @@ fi
 echo "==> Copying sources..."
 SRC_JAVA="$OUT_DIR/src/main/java"
 SRC_RES="$OUT_DIR/src/main/resources"
+# Wipe any MDK example sources/resources so they don't conflict with the real mod
+rm -rf "$SRC_JAVA" "$SRC_RES"
 mkdir -p "$SRC_JAVA" "$SRC_RES"
 
 # Java sources
@@ -241,9 +251,9 @@ fi
 # ---- 9. Patch gradle.properties ----
 echo "==> Patching gradle.properties..."
 PROPS="$OUT_DIR/gradle.properties"
-sed -i "s/^mod_id\s*=.*/mod_id=${MOD_ID}/"           "$PROPS" 2>/dev/null || true
+sed -i "s/^mod_id\s*=.*/mod_id=${MOD_ID}/"               "$PROPS" 2>/dev/null || true
 sed -i "s/^mod_version\s*=.*/mod_version=${MOD_VERSION}/" "$PROPS" 2>/dev/null || true
-sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/" "$PROPS" 2>/dev/null || true
+sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/"  "$PROPS" 2>/dev/null || true
 sed -i "s/^minecraft_version\s*=.*/minecraft_version=${MC_VERSION}/" "$PROPS" 2>/dev/null || true
 
 # ---- 10. Resolve and inject mod dependencies ----
