@@ -111,11 +111,11 @@ fi
 echo "==> Setting up project at $OUT_DIR..."
 rm -rf "$OUT_DIR"
 unzip -q "$MDK_ZIP" -d "$OUT_DIR"
-# MDK zips have a top-level dir (MDK-<branch>), flatten it
+# MDK zips have a top-level dir (MDK-<branch>), flatten it (cp -a handles dotfiles)
 TOP="$(ls "$OUT_DIR")"
 if [[ "$(echo "$TOP" | wc -l)" -eq 1 && -d "$OUT_DIR/$TOP" ]]; then
-  mv "$OUT_DIR/$TOP"/* "$OUT_DIR/"
-  rmdir "$OUT_DIR/$TOP"
+  cp -a "$OUT_DIR/$TOP"/. "$OUT_DIR/"
+  rm -rf "$OUT_DIR/$TOP"
 fi
 
 # ---- 7. Copy decompiled sources ----
