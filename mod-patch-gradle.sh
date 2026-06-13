@@ -74,6 +74,7 @@ if [[ -f "$PROPS" ]]; then
   sed -i "s/^mod_version\s*=.*/mod_version=${MOD_VERSION}/" "$PROPS"
   sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/"  "$PROPS"
   sed -i "s/^minecraft_version\s*=.*/minecraft_version=${MC_VERSION}/" "$PROPS"
+  sed -i "s/^mod_group_id\s*=.*/mod_group_id=com.example.${MOD_ID}/" "$PROPS"
   # Add missing keys if not present
   grep -q "^minecraft_version_range" "$PROPS" || echo "minecraft_version_range=[${MC_VERSION},)" >> "$PROPS"
   grep -q "^neo_version_range"       "$PROPS" || echo "neo_version_range=[${NF_VERSION},)"       >> "$PROPS"
@@ -94,6 +95,7 @@ neo_version_range=[${NF_VERSION},)
 loader_version_range=[1,)
 mod_id=${MOD_ID}
 mod_name=${MOD_ID}
+mod_group_id=com.example.${MOD_ID}
 mod_license=ARR
 mod_version=${MOD_VERSION}
 mod_description=${MOD_DESC:-Decompiled mod}
