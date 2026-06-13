@@ -84,19 +84,34 @@ if [[ -z "$NF_VERSION" ]]; then
 fi
 echo "    NeoForge $NF_VERSION"
 
-# ---- 5. Download MDK ----
-MDK_ZIP="$CACHE_DIR/neoforge-${NF_VERSION}-mdk.zip"
+# ---- 5. Download MDK from NeoForge GitHub template ----
+# NeoForge no longer ships an MDK zip on maven; use the GitHub template repo.
+# Branch naming: MC 1.21.1 -> try "archive/1.21.1", then "archive/1.21", then "main".
+MC_MINOR="${MC_VERSION%.*}"     # "1.21.1" -> "1.21"
+MDK_BRANCH=""
+for branch_try in "archive/${MC_VERSION#1.}" "archive/${MC_MINOR#1.}" "main"; do
+  status="$(curl -fsSL -o /dev/null -w "%{http_code}" \
+    "https://github.com/neoforged/MDK/archive/refs/heads/${branch_try}.zip" 2>/dev/null || true)"
+  if [[ "$status" == "200" || "$status" == "302" ]]; then
+    MDK_BRANCH="$branch_try"
+    break
+  fi
+done
+MDK_BRANCH="${MDK_BRANCH:-main}"
+echo "    MDK branch: $MDK_BRANCH"
+
+MDK_ZIP="$CACHE_DIR/neoforge-mdk-${MDK_BRANCH//\//-}.zip"
 if [[ ! -f "$MDK_ZIP" ]]; then
   echo "==> Downloading MDK..."
-  MDK_URL="https://maven.neoforged.net/releases/net/neoforged/neoforge/${NF_VERSION}/neoforge-${NF_VERSION}-mdk.zip"
-  curl -fSL -o "$MDK_ZIP" "$MDK_URL"
+  curl -fSL -o "$MDK_ZIP" \
+    "https://github.com/neoforged/MDK/archive/refs/heads/${MDK_BRANCH}.zip"
 fi
 
 # ---- 6. Extract MDK and scaffold project ----
 echo "==> Setting up project at $OUT_DIR..."
 rm -rf "$OUT_DIR"
 unzip -q "$MDK_ZIP" -d "$OUT_DIR"
-# MDK zips sometimes have a top-level dir, flatten it
+# MDK zips have a top-level dir (MDK-<branch>), flatten it
 TOP="$(ls "$OUT_DIR")"
 if [[ "$(echo "$TOP" | wc -l)" -eq 1 && -d "$OUT_DIR/$TOP" ]]; then
   mv "$OUT_DIR/$TOP"/* "$OUT_DIR/"
@@ -144,9 +159,9 @@ fi
 # ---- 9. Patch gradle.properties ----
 echo "==> Patching gradle.properties..."
 PROPS="$OUT_DIR/gradle.properties"
-sed -i "s/^mod_id\s*=.*/mod_id=${MOD_ID}/"           "$PROPS" 2>/dev/null || true
+sed -i "s/^mod_id\s*=.*/mod_id=${MOD_ID}/"               "$PROPS" 2>/dev/null || true
 sed -i "s/^mod_version\s*=.*/mod_version=${MOD_VERSION}/" "$PROPS" 2>/dev/null || true
-sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/" "$PROPS" 2>/dev/null || true
+sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/"   "$PROPS" 2>/dev/null || true
 sed -i "s/^minecraft_version\s*=.*/minecraft_version=${MC_VERSION}/" "$PROPS" 2>/dev/null || true
 
 echo ""
