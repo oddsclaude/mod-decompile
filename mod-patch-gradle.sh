@@ -67,6 +67,14 @@ if [[ -z "$NF_VERSION" ]]; then
 fi
 echo "    NeoForge $NF_VERSION"
 
+# Detect actual mod group ID from source package declarations
+MOD_GROUP_ID="com.example.${MOD_ID}"
+JAVA_FILE="$(find "$PROJECT_DIR/src/main/java" -name "*.java" -type f 2>/dev/null | head -1)"
+if [[ -n "$JAVA_FILE" ]]; then
+  PKG="$(grep -m1 '^package ' "$JAVA_FILE" 2>/dev/null | sed 's/^package //;s/;//' | tr -d '[:space:]')"
+  [[ -n "$PKG" ]] && MOD_GROUP_ID="$PKG" && echo "    detected group: $MOD_GROUP_ID"
+fi
+
 # Write or patch gradle.properties
 echo "==> Patching $PROPS..."
 if [[ -f "$PROPS" ]]; then
@@ -74,7 +82,7 @@ if [[ -f "$PROPS" ]]; then
   sed -i "s/^mod_version\s*=.*/mod_version=${MOD_VERSION}/" "$PROPS"
   sed -i "s/^neo_version\s*=.*/neo_version=${NF_VERSION}/"  "$PROPS"
   sed -i "s/^minecraft_version\s*=.*/minecraft_version=${MC_VERSION}/" "$PROPS"
-  sed -i "s/^mod_group_id\s*=.*/mod_group_id=com.example.${MOD_ID}/" "$PROPS"
+  sed -i "s/^mod_group_id\s*=.*/mod_group_id=${MOD_GROUP_ID}/" "$PROPS"
   # Add missing keys if not present
   grep -q "^minecraft_version_range" "$PROPS" || echo "minecraft_version_range=[${MC_VERSION},)" >> "$PROPS"
   grep -q "^neo_version_range"       "$PROPS" || echo "neo_version_range=[${NF_VERSION},)"       >> "$PROPS"
@@ -95,7 +103,7 @@ neo_version_range=[${NF_VERSION},)
 loader_version_range=[1,)
 mod_id=${MOD_ID}
 mod_name=${MOD_ID}
-mod_group_id=com.example.${MOD_ID}
+mod_group_id=${MOD_GROUP_ID}
 mod_license=ARR
 mod_version=${MOD_VERSION}
 mod_description=${MOD_DESC:-Decompiled mod}
